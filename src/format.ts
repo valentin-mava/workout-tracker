@@ -194,7 +194,7 @@ export function weekItems(data: AppData, start: Date): WeekItem[] {
       date: s.date,
       kind: 'other' as const,
       name: s.sport,
-      value: `${formatMinutes(s.durationMinutes)} · ${s.intensity}/5`,
+      value: s.intensity ? `${formatMinutes(s.durationMinutes)} · ${s.intensity}/5` : formatMinutes(s.durationMinutes),
       minutes: s.durationMinutes,
       open: `sport/${s.id}`,
     })),

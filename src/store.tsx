@@ -8,6 +8,8 @@ const KEY = 'workout-tracker-data'
 interface Store {
   data: AppData
   update: (fn: (d: AppData) => AppData) => void
+  /** Aktueller Stand außerhalb des Renderns, z. B. für Hintergrund-Syncs */
+  get: () => AppData
 }
 
 const StoreContext = createContext<Store | null>(null)
@@ -36,8 +38,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     set(KEY, next)
   }, [])
 
+  const getData = useCallback(() => latest.current!, [])
+
   if (!data) return null
-  return <StoreContext.Provider value={{ data, update }}>{children}</StoreContext.Provider>
+  return <StoreContext.Provider value={{ data, update, get: getData }}>{children}</StoreContext.Provider>
 }
 
 export function useStore() {

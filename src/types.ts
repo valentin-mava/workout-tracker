@@ -45,6 +45,8 @@ export interface SportLog {
   /** 1–5 */
   intensity: number
   note?: string
+  /** aus Strava übernommen; die Intensität ergänzt du selbst */
+  source?: 'strava'
 }
 
 /** Gespeicherte Vorlage für Other Sports, z. B. "Mobility Flow 20 min" */
@@ -75,6 +77,15 @@ export interface Activity {
   distanceM: number
   movingSec: number
   avgHr?: number
+  elevM?: number
+}
+
+export interface StravaLink {
+  /** Zufälliger Geräteschlüssel, unter dem der Worker die Strava-Tokens ablegt */
+  key: string
+  connected: boolean
+  athlete?: string
+  lastSync?: string
 }
 
 export interface FreeDraft {
@@ -92,4 +103,5 @@ export interface AppData {
   notes: Note[]
   activities: Activity[]
   freeDraft: FreeDraft | null
+  strava: StravaLink | null
 }

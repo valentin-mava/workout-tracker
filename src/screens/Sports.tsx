@@ -66,7 +66,8 @@ export function Sports({ editId }: { editId?: string }) {
                   <span className="name">
                     {s.sport}
                     <span className="row-sub" style={{ display: 'block', fontWeight: 400 }}>
-                      {relativeDay(s.date)} · Intensität {s.intensity}
+                      {relativeDay(s.date)} · {s.intensity ? `Intensität ${s.intensity}` : 'Intensität ergänzen'}
+                      {s.source === 'strava' ? ' · Strava' : ''}
                       {s.note ? ` · ${s.note}` : ''}
                     </span>
                   </span>
@@ -104,6 +105,7 @@ function SportForm({ initial, onDone }: { initial: Form; onDone: () => void }) {
         durationMinutes: f.durationMinutes,
         intensity: f.intensity,
         note: f.note.trim() || undefined,
+        source: prev?.source,
       }
       update((d) => ({
         ...d,

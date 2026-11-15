@@ -9,7 +9,9 @@ import { Tracker } from './screens/Tracker'
 import { WorkoutDetail } from './screens/WorkoutDetail'
 import { WorkoutEditor } from './screens/WorkoutEditor'
 import { Workouts } from './screens/Workouts'
-import { StoreProvider } from './store'
+import { useEffect } from 'react'
+import { StoreProvider, useStore } from './store'
+import { syncStrava } from './strava'
 import { useHash } from './ui'
 
 function Routes() {
@@ -44,9 +46,27 @@ function Routes() {
   }
 }
 
+/** Synchronisiert Strava beim Öffnen und beim Zurückkehren in die App, höchstens alle 10 Minuten */
+function StravaAutoSync() {
+  const { get, update } = useStore()
+  useEffect(() => {
+    const run = () => {
+      const d = get()
+      if (document.visibilityState !== 'visible' || !d.strava) return
+      const recent = d.strava.connected && d.strava.lastSync && Date.now() - Date.parse(d.strava.lastSync) < 10 * 60_000
+      if (!recent) syncStrava(d, update)
+    }
+    run()
+    document.addEventListener('visibilitychange', run)
+    return () => document.removeEventListener('visibilitychange', run)
+  }, [get, update])
+  return null
+}
+
 export default function App() {
   return (
     <StoreProvider>
+      <StravaAutoSync />
       <Routes />
     </StoreProvider>
   )

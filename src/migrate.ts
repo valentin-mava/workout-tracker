@@ -9,6 +9,7 @@ export const emptyData = (): AppData => ({
   notes: [],
   activities: [],
   freeDraft: null,
+  strava: null,
 })
 
 type Metric = 'sets' | 'reps' | 'weight' | 'time'

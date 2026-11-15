@@ -1,0 +1,12 @@
+{
+  "name": "workout-strava",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.162.0"
+  }
+}
