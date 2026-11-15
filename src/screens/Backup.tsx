@@ -1,5 +1,6 @@
 import { useRef } from 'react'
-import { isAppData, useStore } from '../store'
+import { migrate } from '../migrate'
+import { useStore } from '../store'
 import { go, Header } from '../ui'
 
 export function Backup() {
@@ -27,11 +28,11 @@ export function Backup() {
 
   const importJson = async (file: File) => {
     try {
-      const parsed = JSON.parse(await file.text())
-      if (!isAppData(parsed)) throw new Error()
-      const msg = `${parsed.workouts.length} Workouts und ${parsed.sessions.length} Trainings importieren? Deine aktuellen Daten werden ersetzt.`
+      const parsed = migrate(JSON.parse(await file.text()))
+      if (!parsed) throw new Error()
+      const msg = `${parsed.workouts.length} Workouts, ${parsed.logs.length} Trainings und ${parsed.notes.length} Notizen importieren? Deine aktuellen Daten werden ersetzt.`
       if (!confirm(msg)) return
-      update(() => ({ version: 1, workouts: parsed.workouts, sessions: parsed.sessions, draft: parsed.draft ?? null }))
+      update(() => parsed)
       go('')
     } catch {
       alert('Die Datei ist kein gültiges Backup.')
@@ -40,17 +41,15 @@ export function Backup() {
 
   return (
     <main className="screen">
-      <Header title="Backup" back={() => go('')} />
+      <Header back={{ label: 'Overview', to: '' }} title="Backup" />
+      <p className="muted">Deine Daten liegen nur auf diesem Gerät. Exportiere ab und zu ein Backup, z. B. in iCloud Drive.</p>
       <p className="muted">
-        Deine Daten liegen nur auf diesem Gerät. Exportiere ab und zu ein Backup, z. B. in iCloud Drive.
+        {data.workouts.length} Workouts · {data.logs.length} Trainings · {data.sportLogs.length} Other Sports · {data.notes.length} Notizen
       </p>
-      <p className="muted">
-        {data.workouts.length} Workouts · {data.sessions.length} gespeicherte Trainings
-      </p>
-      <button className="btn primary wide" onClick={exportJson}>
+      <button className="btn dark wide" onClick={exportJson}>
         Backup exportieren
       </button>
-      <button className="btn secondary wide" onClick={() => input.current?.click()}>
+      <button className="btn outline wide" onClick={() => input.current?.click()}>
         Backup importieren
       </button>
       <input

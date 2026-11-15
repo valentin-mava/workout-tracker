@@ -1,21 +1,19 @@
-/** Welche Werte eine Übung erfasst. Mobility z. B. nur "time", Bodyweight ohne "weight". */
-export type Metric = 'sets' | 'reps' | 'weight' | 'time'
+export type Tool = 'bodyweight' | 'dumbbell' | 'barbell' | 'machine' | 'cable' | 'kettlebell'
 
-export const METRICS: Metric[] = ['sets', 'reps', 'weight', 'time']
+export const TOOLS: Tool[] = ['bodyweight', 'dumbbell', 'barbell', 'machine', 'cable', 'kettlebell']
 
-export interface Values {
-  sets?: number
-  reps?: number
-  weight?: number
-  /** Sekunden */
-  time?: number
-}
-
-export interface Exercise extends Values {
+export interface Exercise {
   id: string
   name: string
+  /** fehlt bei aus v1 übernommenen Übungen, bis du es setzt */
+  tool?: Tool
+  sets: number
+  reps: number
+  /** "reps" = Wiederholungen, "sec" = Sekunden pro Satz (z. B. Plank) */
+  unit: 'reps' | 'sec'
+  /** kg; bei Bodyweight ohne Bedeutung */
+  weight?: number
   note?: string
-  track: Metric[]
 }
 
 export interface Workout {
@@ -24,29 +22,74 @@ export interface Workout {
   exercises: Exercise[]
 }
 
-export interface SessionEntry extends Values {
-  exerciseId: string
-  exerciseName: string
-  track: Metric[]
-  done: boolean
+/** Momentaufnahme einer Übung beim Abhaken */
+export type LogEntry = Omit<Exercise, 'id' | 'note'> & { exerciseId: string }
+
+/** Ein erledigtes Workout */
+export interface WorkoutLog {
+  id: string
+  /** null bei freiem Training, das nicht als Workout gespeichert wurde */
+  workoutId: string | null
+  workoutName: string
+  /** ISO-Zeitpunkt */
+  date: string
+  durationMinutes?: number
+  entries: LogEntry[]
 }
 
-export interface Session {
+export interface SportLog {
   id: string
-  workoutId: string
-  workoutName: string
-  /** ISO-Zeitpunkt des Starts */
+  sport: string
   date: string
   durationMinutes: number
-  entries: SessionEntry[]
+  /** 1–5 */
+  intensity: number
+  note?: string
 }
 
-/** Laufendes Training, noch nicht gespeichert */
-export type Draft = Omit<Session, 'durationMinutes'>
+/** Gespeicherte Vorlage für Other Sports, z. B. "Mobility Flow 20 min" */
+export interface SportPreset {
+  id: string
+  sport: string
+  durationMinutes: number
+  intensity: number
+  note?: string
+}
+
+export interface Note {
+  id: string
+  title: string
+  body: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ActivityType = 'run' | 'ride' | 'swim' | 'hike' | 'other'
+
+/** Aus Strava übernommene Aktivität */
+export interface Activity {
+  id: string
+  type: ActivityType
+  name: string
+  date: string
+  distanceM: number
+  movingSec: number
+  avgHr?: number
+}
+
+export interface FreeDraft {
+  name: string
+  startedAt: string
+  exercises: Exercise[]
+}
 
 export interface AppData {
-  version: 1
+  version: 2
   workouts: Workout[]
-  sessions: Session[]
-  draft: Draft | null
+  logs: WorkoutLog[]
+  sportLogs: SportLog[]
+  sportPresets: SportPreset[]
+  notes: Note[]
+  activities: Activity[]
+  freeDraft: FreeDraft | null
 }

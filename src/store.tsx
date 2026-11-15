@@ -1,10 +1,9 @@
 import { get, set } from 'idb-keyval'
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { emptyData, migrate } from './migrate'
 import type { AppData } from './types'
 
 const KEY = 'workout-tracker-data'
-
-export const emptyData = (): AppData => ({ version: 1, workouts: [], sessions: [], draft: null })
 
 interface Store {
   data: AppData
@@ -18,9 +17,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const latest = useRef<AppData | null>(null)
 
   useEffect(() => {
-    get<AppData>(KEY).then((d) => {
-      latest.current = d ?? emptyData()
-      setData(latest.current)
+    get(KEY).then((raw) => {
+      const d = migrate(raw) ?? emptyData()
+      latest.current = d
+      setData(d)
+      // Migrierte Daten gleich im neuen Format sichern
+      if (raw && (raw as { version?: number }).version !== 2) set(KEY, d)
     })
     // Bittet den Browser, die Daten nicht automatisch zu löschen
     navigator.storage?.persist?.()
@@ -45,8 +47,3 @@ export function useStore() {
 }
 
 export const uid = () => crypto.randomUUID()
-
-export function isAppData(x: unknown): x is AppData {
-  const d = x as AppData
-  return !!d && Array.isArray(d.workouts) && Array.isArray(d.sessions)
-}
