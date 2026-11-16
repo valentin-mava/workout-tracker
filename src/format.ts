@@ -150,6 +150,12 @@ export function progress(now: Exercise, before: LogEntry | null): { text: string
   return { text: 'gleich', up: false }
 }
 
+/** Standard für Workouts ohne Zeitangabe: Schnitt aller eingetragenen Dauern, anfangs 75 min */
+export function typicalMinutes(data: AppData) {
+  const timed = data.logs.filter((l) => l.durationMinutes)
+  return timed.length ? Math.round(timed.reduce((a, l) => a + l.durationMinutes!, 0) / timed.length) : 75
+}
+
 export type ItemKind = 'gym' | 'cardio' | 'other'
 
 export interface WeekItem {
@@ -170,14 +176,15 @@ export function weekItems(data: AppData, start: Date): WeekItem[] {
     const t = new Date(iso).getTime()
     return t >= from && t < to
   }
+  const typical = typicalMinutes(data)
   const items: WeekItem[] = [
     ...data.logs.filter((l) => inWeek(l.date)).map((l) => ({
       id: l.id,
       date: l.date,
       kind: 'gym' as const,
       name: l.workoutName,
-      value: l.durationMinutes ? formatMinutes(l.durationMinutes) : '–',
-      minutes: l.durationMinutes ?? 0,
+      value: l.durationMinutes ? formatMinutes(l.durationMinutes) : `~${formatMinutes(typical)}`,
+      minutes: l.durationMinutes ?? typical,
       open: `log/${l.id}`,
     })),
     ...data.activities.filter((a) => inWeek(a.date)).map((a) => ({

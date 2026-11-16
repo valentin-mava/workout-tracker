@@ -8,21 +8,25 @@ interface Props {
   onClose: () => void
   onSave: (date: string, durationMinutes: number | undefined) => void
   children?: ReactNode
+  /** Beim Bearbeiten: bisheriges Datum (ISO) und Dauer */
+  initial?: { date: string; durationMinutes?: number }
 }
 
 /** Abschluss eines Trainings: Datum (Standard heute) und optionale Dauer */
-export function DoneSheet({ open, title, onClose, onSave, children }: Props) {
+export function DoneSheet({ open, title, onClose, onSave, children, initial }: Props) {
   return (
     <Sheet open={open} onClose={onClose} title={title}>
-      {open ? <DoneForm onSave={onSave} onClose={onClose} extra={children} /> : null}
+      {open ? <DoneForm onSave={onSave} onClose={onClose} extra={children} initial={initial} /> : null}
     </Sheet>
   )
 }
 
-function DoneForm({ onSave, onClose, extra }: { onSave: Props['onSave']; onClose: () => void; extra?: ReactNode }) {
-  const [date, setDate] = useState(toDateInput(new Date().toISOString()))
-  const [duration, setDuration] = useState('')
+function DoneForm({ onSave, onClose, extra, initial }: { onSave: Props['onSave']; onClose: () => void; extra?: ReactNode; initial?: Props['initial'] }) {
+  const [date, setDate] = useState(toDateInput(initial?.date ?? new Date().toISOString()))
+  const [duration, setDuration] = useState(initial?.durationMinutes ? String(initial.durationMinutes) : '')
   const minutes = parseInt(duration, 10)
+  // Unverändertes Datum behält die ursprüngliche Uhrzeit
+  const isoDate = () => (initial && date === toDateInput(initial.date) ? initial.date : fromDateInput(date))
 
   return (
     <div className="form">
@@ -37,7 +41,7 @@ function DoneForm({ onSave, onClose, extra }: { onSave: Props['onSave']; onClose
         </label>
       </div>
       {extra}
-      <button className="btn accent wide" disabled={!date} onClick={() => onSave(fromDateInput(date), minutes > 0 ? minutes : undefined)}>
+      <button className="btn accent wide" disabled={!date} onClick={() => onSave(isoDate(), minutes > 0 ? minutes : undefined)}>
         Speichern
       </button>
       <button className="btn ghost" onClick={onClose}>

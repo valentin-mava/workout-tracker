@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { DoneSheet } from '../DoneSheet'
 import { ExerciseRow } from '../ExerciseRow'
-import { formatMinutes, relativeDay, workoutStats } from '../format'
+import { formatMinutes, relativeDay, shortDate, workoutStats } from '../format'
 import { uid, useStore } from '../store'
 import type { WorkoutLog } from '../types'
 import { go, Header, Icon, Redirect } from '../ui'
@@ -13,6 +13,7 @@ export function WorkoutDetail({ id }: { id: string }) {
   if (!workout) return <Redirect to="workouts" />
 
   const s = workoutStats(data, workout)
+  const pastLogs = data.logs.filter((l) => l.workoutId === workout.id).sort((a, b) => b.date.localeCompare(a.date))
   const meta = [
     `${workout.exercises.length} ${workout.exercises.length === 1 ? 'Übung' : 'Übungen'}`,
     s.avg != null ? `Ø ${formatMinutes(s.avg)}` : null,
@@ -57,6 +58,27 @@ export function WorkoutDetail({ id }: { id: string }) {
       ) : (
         <p className="muted">Noch keine Übungen. Tippe auf „Bearbeiten“, um welche hinzuzufügen.</p>
       )}
+
+      {pastLogs.length ? (
+        <section className="section" aria-label="Verlauf">
+          <h2 className="section-title">Erledigt · antippen zum Ändern</h2>
+          <ul className="table">
+            {pastLogs.slice(0, 10).map((l) => (
+              <li key={l.id}>
+                <button className="table-row" onClick={() => go(`log/${l.id}`)}>
+                  <span className="name">
+                    {shortDate(l.date)}
+                    <span className="row-sub" style={{ display: 'block', fontWeight: 400 }}>
+                      {relativeDay(l.date)}
+                    </span>
+                  </span>
+                  <span className="val">{l.durationMinutes ? formatMinutes(l.durationMinutes) : '–'}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <footer className="footer">
         <button className="btn dark wide btn-big" disabled={!workout.exercises.length} onClick={() => setDone(true)}>
